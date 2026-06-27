@@ -54,7 +54,7 @@ const Dashboard = () => {
 
         const response =
           await axios.get(
-            `http://localhost:5000/api/interview/stats/${userInfo._id}`
+            `${import.meta.env.VITE_API_URL}/api/interview/stats/${userInfo._id}`
           );
 
         setStats(

@@ -42,7 +42,7 @@ const ResumeUpload = () => {
 
         const response =
           await axios.get(
-            `http://localhost:5000/api/resume/${userInfo._id}`
+            `${import.meta.env.VITE_API_URL}/api/resume/${userInfo._id}`
           );
 
         setResumeData(
@@ -86,7 +86,7 @@ formData.append(
 
 const response =
   await axios.post(
-    "http://localhost:5000/api/resume/analyze",
+    `${import.meta.env.VITE_API_URL}/api/resume/analyze`,
     formData
   );
 

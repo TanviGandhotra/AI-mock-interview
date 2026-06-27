@@ -32,7 +32,7 @@ const Analytics = () => {
 
         const response =
           await axios.get(
-            `http://localhost:5000/api/interview/analytics/${userInfo._id}`
+            `${import.meta.env.VITE_API_URL}/api/interview/analytics/${userInfo._id}`
           );
 
         console.log(

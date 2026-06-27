@@ -199,7 +199,7 @@ const Interview = () => {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/interview/chat",
+          `${import.meta.env.VITE_API_URL}/api/interview/chat`,
             {
               message:
                 "Start the interview",
@@ -256,7 +256,7 @@ const Interview = () => {
 
         const response =
           await axios.post(
-            "http://localhost:5000/api/interview/chat",
+           `${import.meta.env.VITE_API_URL}/api/interview/chat`,
             {
               message,
 
@@ -334,7 +334,7 @@ const Interview = () => {
           );
 
        await axios.post(
-  "http://localhost:5000/api/interview/save",
+  `${import.meta.env.VITE_API_URL}/api/interview/save`,
   {
     userId:
       userInfo._id,
