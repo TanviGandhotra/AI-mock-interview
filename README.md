@@ -44,15 +44,23 @@ An AI-powered mock interview platform that helps users practice technical interv
 # 📸 Screenshots
 
 ## Dashboard
+<img width="1906" height="905" alt="image" src="https://github.com/user-attachments/assets/ce09032d-e356-4034-95f9-af4295ec3777" />
+
 Modern dashboard showing interview statistics and recent activity.
 
 ## AI Interview
+<img width="1918" height="907" alt="image" src="https://github.com/user-attachments/assets/d151eb83-0bbe-40a9-b164-e4fbe20a1173" />
+
 Interactive AI interview experience with voice mode support.
 
 ## Resume Analyzer
+<img width="1917" height="902" alt="image" src="https://github.com/user-attachments/assets/796423b6-5210-4d75-ba4c-d2458ca2fee0" />
+
 Upload resumes and get AI-powered skill analysis and feedback.
 
 ## Analytics
+<img width="1918" height="910" alt="image" src="https://github.com/user-attachments/assets/4fd80ad7-34b9-4fa7-93c9-728ecc5b6fc6" />
+
 Track strengths, weak areas, confidence score, and performance trends.
 
 ---
