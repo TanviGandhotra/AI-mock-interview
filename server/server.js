@@ -13,7 +13,12 @@ const app = express();
 const interviewRoutes = require("./routes/interviewRoutes");
 const resumeRoutes =
   require("./routes/resumeRoutes");
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://ai-mock-interview-frontend-lvwv.onrender.com",
+    credentials: true,
+  })
+);
 
 app.use(
   express.json({
