@@ -36,20 +36,20 @@ useEffect(() => {
   const handleSubmit = async (e) => {
 
     e.preventDefault();
-
+  console.log("before api");
     try {
 
       const data = await signupUser(
   formData
 );
 
-
+  console.log("api success", data);
 
 localStorage.setItem(
   "userInfo",
   JSON.stringify(data)
 );
-
+    console.log("saved");
 window.location.replace("/");
 
     } catch (error) {
