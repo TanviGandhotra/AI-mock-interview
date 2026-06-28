@@ -43,14 +43,14 @@ useEffect(() => {
   formData
 );
 
-console.log(data);
+
 
 localStorage.setItem(
   "userInfo",
   JSON.stringify(data)
 );
 
-navigate("/");
+window.location.replace("/");
 
     } catch (error) {
 
