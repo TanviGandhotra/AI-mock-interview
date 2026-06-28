@@ -40,15 +40,17 @@ useEffect(() => {
     try {
 
       const data = await signupUser(
-        formData
-      );
+  formData
+);
 
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify(data)
-      );
+console.log(data);
 
-      navigate("/");
+localStorage.setItem(
+  "userInfo",
+  JSON.stringify(data)
+);
+
+navigate("/");
 
     } catch (error) {
 
