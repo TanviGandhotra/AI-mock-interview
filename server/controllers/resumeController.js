@@ -3,9 +3,16 @@ const Groq = require("groq-sdk");
 const Resume =
   require("../models/Resume");
 
-// PDF PARSER
-const pdfParse =
-  require("pdf-parse");
+const ResumeChunk = require("../models/ResumeChunk");
+
+const {
+  extractResumeText,
+  chunkResume,
+} = require("../services/resumeTextService");
+
+const {
+  storeResumeChunks,
+} = require("../services/resumeVectorService");
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -17,19 +24,7 @@ const analyzeResume =
 
     try {
 
-      console.log(
-        "BODY:",
-        req.body
-      );
-
-      console.log(
-        "FILE:",
-        req.file
-      );
-
-      const { userId } =
-        req.body;
-
+      const userId = req.user.id;
       const file =
         req.file;
 
@@ -44,22 +39,15 @@ const analyzeResume =
 
       }
 
-      console.log(
-        "PDF START"
-      );
+      const resumeText = await extractResumeText(file.buffer);
+      const chunks = chunkResume(resumeText);
 
-      // PDF TEXT
-     const data =
-  await pdfParse(
-    file.buffer
-  );
-
-      console.log(
-        "PDF DONE"
-      );
-
-      const resumeText =
-        data.text;
+      if (chunks.length === 0) {
+        return res.status(422).json({
+          success: false,
+          message: "No usable resume content was found in this PDF.",
+        });
+      }
 
       const fileName =
         file.originalname;
@@ -97,10 +85,6 @@ Return ONLY valid JSON:
 }
 `;
 
-      console.log(
-        "GROQ START"
-      );
-
       // AI ANALYSIS
       const completion =
         await groq.chat.completions.create({
@@ -118,18 +102,13 @@ Return ONLY valid JSON:
           temperature: 0.4,
         });
 
-      console.log(
-        "GROQ DONE"
-      );
-
       const raw =
         completion.choices[0]
           .message.content;
 
-      console.log(raw);
-
-      const result =
-        JSON.parse(raw);
+      const result = JSON.parse(
+        raw.replace(/```json|```/g, "").trim()
+      );
 
       // SAVE DB
       const resume =
@@ -148,6 +127,23 @@ Return ONLY valid JSON:
             result.feedback,
         });
 
+      try {
+        await storeResumeChunks({
+          userId,
+          resumeId: resume._id,
+          chunks,
+        });
+      } catch (error) {
+        await ResumeChunk.deleteMany({ userId, resumeId: resume._id });
+        await Resume.deleteOne({ _id: resume._id, userId });
+        throw error;
+      }
+
+      await ResumeChunk.deleteMany({
+        userId,
+        resumeId: { $ne: resume._id },
+      });
+
       res.status(200).json({
         success: true,
         resume,
@@ -155,15 +151,13 @@ Return ONLY valid JSON:
 
     } catch (error) {
 
-      console.log(
-        "RESUME ERROR:",
-        error
-      );
+      console.error("RESUME ERROR:", error.message);
 
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
-        message:
-          "Resume analysis failed",
+        message: error.statusCode
+          ? error.message
+          : "Resume analysis failed. Please try again.",
       });
 
     }
@@ -176,8 +170,14 @@ const getResume =
 
     try {
 
-      const { userId } =
-        req.params;
+      const { userId } = req.params;
+
+      if (userId !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          message: "You cannot access another user's resume.",
+        });
+      }
 
       const resume =
         await Resume.findOne({

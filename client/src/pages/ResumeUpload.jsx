@@ -11,8 +11,11 @@ import {
 } from "react";
 
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ResumeUpload = () => {
+
+  const navigate = useNavigate();
 
   const userInfo = JSON.parse(
     localStorage.getItem(
@@ -28,6 +31,8 @@ const ResumeUpload = () => {
     setLoading] =
     useState(false);
 
+  const [uploadError, setUploadError] = useState("");
+
   // FETCH SAVED RESUME
   useEffect(() => {
 
@@ -42,7 +47,12 @@ const ResumeUpload = () => {
 
         const response =
           await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/resume/${userInfo._id}`
+            `${import.meta.env.VITE_API_URL}/api/resume/${userInfo._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
+            }
           );
 
         setResumeData(
@@ -51,7 +61,9 @@ const ResumeUpload = () => {
 
       } catch (error) {
 
-        console.log(error);
+        setUploadError(
+          error.response?.data?.message || "Could not load your saved resume."
+        );
 
       }
 
@@ -69,6 +81,7 @@ const ResumeUpload = () => {
         if (!file) return;
 
         setLoading(true);
+        setUploadError("");
 
         // READ FILE TEXT
        const formData =
@@ -87,7 +100,12 @@ formData.append(
 const response =
   await axios.post(
     `${import.meta.env.VITE_API_URL}/api/resume/analyze`,
-    formData
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    }
   );
 
         setResumeData(
@@ -96,7 +114,9 @@ const response =
 
       } catch (error) {
 
-        console.log(error);
+        setUploadError(
+          error.response?.data?.message || "Resume analysis failed. Please try again."
+        );
 
       } finally {
 
@@ -124,6 +144,12 @@ const response =
           Upload your resume for AI-based interview generation.
 
         </p>
+
+        {uploadError && (
+          <p role="alert" className="mb-4 text-red-400">
+            {uploadError}
+          </p>
+        )}
 
       </div>
 
@@ -163,7 +189,7 @@ hover:border-purple-500/50 border border-dashed border-purple-500 rounded-3xl p-
 
           <input
             type="file"
-            accept=".txt,.pdf,.doc,.docx"
+            accept=".pdf,application/pdf"
             onChange={
               handleUpload
             }
@@ -204,13 +230,21 @@ hover:border-purple-500/50 rounded-3xl p-6 border border-gray-800">
 
                 <p className="text-gray-400 text-sm">
 
-                  Uploaded Successfully
+                  Resume analyzed successfully. Your AI interviewer is ready.
 
                 </p>
 
               </div>
 
             </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/interview")}
+              className="mt-6 bg-purple-600 hover:bg-purple-700 px-5 py-3 rounded-xl font-medium transition-colors"
+            >
+              Start Resume-Based Interview
+            </button>
 
             {/* SKILLS */}
             <div className="flex flex-wrap gap-3">

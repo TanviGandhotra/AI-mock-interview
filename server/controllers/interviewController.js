@@ -1,7 +1,17 @@
 const Groq = require("groq-sdk");
-
+const ResumeChunk = require("../models/ResumeChunk");
 const Interview =
   require("../models/Interview");
+
+const Resume = require("../models/Resume");
+
+const {
+  retrieveRelevantResumeContext,
+} = require("../services/resumeVectorService");
+
+const {
+  generateInterviewQuestion,
+} = require("../services/interviewQuestionService");
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -22,6 +32,51 @@ const chatWithAI = async (
       type,
       difficulty,
     } = req.body;
+
+    const conversation = Array.isArray(messages) ? messages : [];
+    const latestResume = await Resume.findOne({
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
+
+    if (latestResume) {
+      const isStart = message === "Start the interview" && conversation.length === 0;
+      const previousQuestion = conversation
+        .filter((item) => item.sender === "ai")
+        .pop()?.text || "";
+      const retrievalQuery = isStart
+        ? "Candidate's technical skills, programming languages, frameworks, projects, internships, experience, databases, tools, and achievements. Prioritize specific project details and technologies."
+        : `Previous interview question: ${previousQuestion}\nCandidate's latest answer: ${message}`;
+        const chunkCount = await ResumeChunk.countDocuments({
+  userId: req.user.id,
+  resumeId: latestResume._id,
+});
+
+console.log("RESUME CHUNKS IN DB:", chunkCount);
+      const resumeContext = await retrieveRelevantResumeContext({
+        userId: req.user.id,
+        resumeId: latestResume._id,
+        query: retrievalQuery,
+      });
+console.log("RESUME CONTEXT MATCHES:", resumeContext.length);
+      if (resumeContext.length === 0) {
+        return res.status(503).json({
+          success: false,
+          message: "No searchable resume content is available. Please upload your resume again.",
+        });
+      }
+
+      const reply = await generateInterviewQuestion({
+        groq,
+        messages: conversation,
+        message,
+        resumeContext,
+      });
+
+      return res.status(200).json({
+        success: true,
+        reply,
+      });
+    }
 
     const systemPrompt = `
 You are an intelligent AI mock interviewer conducting a realistic ${role} interview.
@@ -89,11 +144,13 @@ Rules:
 
   } catch (error) {
 
-    console.log(error);
+    console.error("INTERVIEW CHAT ERROR:", error.message);
 
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
-      message: "AI Error",
+      message: error.statusCode
+        ? error.message
+        : "AI Error. Please try again.",
     });
 
   }

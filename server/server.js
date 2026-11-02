@@ -15,7 +15,11 @@ const resumeRoutes =
   require("./routes/resumeRoutes");
 app.use(
   cors({
-    origin: "https://ai-mock-interview-frontend-lvwv.onrender.com",
+   origin: [
+      "https://ai-mock-interview-frontend-lvwv.onrender.com",
+      "http://localhost:5173",
+    ],
+
     credentials: true,
   })
 );

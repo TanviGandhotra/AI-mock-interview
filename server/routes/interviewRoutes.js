@@ -3,6 +3,8 @@ const express = require("express");
 const router =
   express.Router();
 
+const authenticateToken = require("../middleware/authMiddleware");
+
 const {
   chatWithAI,
   saveInterview,
@@ -15,6 +17,7 @@ const {
 // AI CHAT
 router.post(
   "/chat",
+  authenticateToken,
   chatWithAI
 );
 

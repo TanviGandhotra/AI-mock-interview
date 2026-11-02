@@ -37,6 +37,8 @@ const Interview = () => {
   const [loading, setLoading] =
     useState(false);
 
+  const [chatError, setChatError] = useState("");
+
   const [voiceMode,
     setVoiceMode] =
     useState(false);
@@ -205,6 +207,11 @@ const Interview = () => {
                 "Start the interview",
 
               messages: [],
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
             }
           );
 
@@ -220,7 +227,9 @@ const Interview = () => {
 
       } catch (error) {
 
-        console.log(error);
+        setChatError(
+          error.response?.data?.message || "Could not start the interview. Please try again."
+        );
 
       } finally {
 
@@ -253,6 +262,7 @@ const Interview = () => {
       try {
 
         setLoading(true);
+        setChatError("");
 
         const response =
           await axios.post(
@@ -262,6 +272,11 @@ const Interview = () => {
 
               messages:
                 updatedMessages,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
             }
           );
 
@@ -286,7 +301,9 @@ const Interview = () => {
 
       } catch (error) {
 
-        console.log(error);
+        setChatError(
+          error.response?.data?.message || "The AI could not respond. Please try again."
+        );
 
       } finally {
 
@@ -459,6 +476,12 @@ hover:border-purple-500/50 rounded-3xl border border-gray-800 mt-6 h-[70vh] flex
         <ChatContainer
           messages={messages}
         />
+
+        {chatError && (
+          <p role="alert" className="px-6 pb-3 text-sm text-red-400">
+            {chatError}
+          </p>
+        )}
 
         {loading && (
 
